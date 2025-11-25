@@ -95,24 +95,30 @@ project/
    npm install
    ```
 
-3. **Configure server connection:**
-   
-   Create a `.env` file in the `client/` directory:
-   ```env
-   VITE_SERVER_URL=http://<YOUR_IP>:5050
-   ```
-   ⚠️ Replace `<YOUR_IP>` with your actual server IP
-
-4. **Start the development server:**
+3. **Start the development server:**
    ```bash
    npm run dev
    ```
    
-   Frontend runs at: `http://localhost:5173`
+   Frontend runs at: `http://localhost:5173` (or your local IP)
+
+4. **Configure server connection:**
+   
+   When you open the app, you'll see a "Server Configuration" screen if not connected.
+   - Enter your server IP address (e.g., `http://192.168.1.100:5050`)
+   - The URL will be saved in your browser for future use
+   - Click "Connect" to establish connection
+   
+   **Optional:** You can also create a `.env` file in the `client/` directory:
+   ```env
+   VITE_SERVER_URL=http://<YOUR_IP>:5050
+   ```
 
 5. **Access on mobile devices:**
    
-   Open: `http://<YOUR_IP>:5173`
+   Open: `http://<YOUR_IP>:5173` on any device on the same WiFi network
+   - Each device will need to configure the server URL on first use
+   - The URL is saved per device in browser localStorage
 
 ---
 
@@ -154,12 +160,11 @@ project/
 
 **Fix:**
 - Ensure phone and laptop are on the **same Wi-Fi network**
-- Use the correct server IP in `.env`
-- Restart Vite after editing `.env`:
-  ```bash
-  npm run dev
-  ```
+- Enter the correct server IP in the "Server Configuration" screen
+- Make sure the server is running (`python server.py` in the server directory)
+- Check that the server IP is correct (use `ipconfig` on Windows or `ifconfig` on Mac/Linux)
 - Disable VPN if active
+- Try refreshing the page after entering the server URL
 
 ### ❌ Chat/messages/voting not showing
 

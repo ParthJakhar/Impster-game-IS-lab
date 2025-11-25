@@ -1,8 +1,11 @@
 import React, { useEffect, useState, useMemo } from "react";
-import socket from "./socket";
+import { getSocket } from "./socket";
 import Lobby from "./components/Lobby";
 import Messages from "./components/Messages";
 import NameForm from "./components/NameForm";
+import ServerConfig from "./components/ServerConfig";
+
+const MIN_PLAYERS = 3;
 
 export default function App() {
   const [name, setName] = useState("");
@@ -21,8 +24,12 @@ export default function App() {
   const isHost = useMemo(() => players.length > 0 && players[0].name === name, [players, name]);
 
   const pushMessage = (m) => setMessages(prev => [...prev, m]);
+  const [socketKey, setSocketKey] = useState(0); // Force re-render when socket changes
 
   useEffect(() => {
+    // Get current socket instance
+    const socket = getSocket();
+
     const onConnect = () => {
       setConnected(true);
       pushMessage({ type: "system", text: "Connected", time: Date.now() });
@@ -103,6 +110,11 @@ export default function App() {
       pushMessage({ type: "system", text: `Error: ${payload.msg}`, time: Date.now() });
     };
 
+    // Check initial connection status
+    if (socket.connected) {
+      setConnected(true);
+    }
+
     // register
     socket.on("connect", onConnect);
     socket.on("disconnect", onDisconnect);
@@ -140,16 +152,18 @@ export default function App() {
       socket.off("game_over", onGameOver);
       socket.off("game_error", onGameError);
     };
-  }, []); // eslint-disable-line
+  }, [socketKey]); // Re-run when socket changes
 
   // UI actions
   const handleSetName = (playerName) => {
     setName(playerName);
+    const socket = getSocket();
     socket.emit("join", { name: playerName });
   };
 
   const sendChat = (text) => {
     if (!name || !text) return;
+    const socket = getSocket();
     const payload = { from: name, text };
     socket.emit("chat_message", payload);
     pushMessage({ type: "chat", from: name, text, time: Date.now() });
@@ -160,10 +174,16 @@ export default function App() {
       pushMessage({ type: "system", text: "Only host can start", time: Date.now() });
       return;
     }
+    if (players.length < MIN_PLAYERS) {
+      pushMessage({ type: "system", text: `Need at least ${MIN_PLAYERS} players to start`, time: Date.now() });
+      return;
+    }
+    const socket = getSocket();
     socket.emit("start_game", {});
   };
 
   const submitClue = (clue) => {
+    const socket = getSocket();
     socket.emit("submit_clue", { clue });
   };
 
@@ -172,12 +192,39 @@ export default function App() {
       pushMessage({ type: "system", text: "Only host can start voting", time: Date.now() });
       return;
     }
+    if (players.length < MIN_PLAYERS) {
+      pushMessage({ type: "system", text: `Need at least ${MIN_PLAYERS} players to vote`, time: Date.now() });
+      return;
+    }
+    const socket = getSocket();
     socket.emit("start_voting", {});
   };
 
   const castVote = (targetSid) => {
+    const socket = getSocket();
     socket.emit("cast_vote", { targetId: targetSid });
   };
+
+  const handleServerConnected = () => {
+    // Force re-registration of event listeners with new socket
+    setSocketKey(prev => prev + 1);
+  };
+
+  const leaveRoom = () => {
+    const socket = getSocket();
+    socket.emit("leave_room");
+    setName("");
+    setGameStarted(false);
+    setRole(null);
+    setWord(null);
+    setCluesRevealed(false);
+    setRevealedClues({});
+    setVotingProgress({ voters: [], votesCount: 0, aliveCount: 0 });
+    setPlayers([]);
+    setMessages(prev => [...prev, { type: "system", text: "You left the room", time: Date.now() }]);
+  };
+
+  const hasMinimumPlayers = players.length >= MIN_PLAYERS;
 
   return (
     <div className="app-root">
@@ -189,20 +236,40 @@ export default function App() {
               <span className={`dot ${connected ? "online" : "offline"}`}></span>
               <span>{connected ? "Connected" : "Disconnected"}</span>
             </div>
-            {name && isHost ? (
+            {name ? (
               <>
-                <button onClick={startGame} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", cursor: "pointer" }}>
-                  Start Game
-                </button>
-                <button onClick={startVoting} style={{ padding: "6px 10px", borderRadius: 8, border: "none", background: "rgba(255,255,255,0.04)", cursor: "pointer" }}>
-                  Start Voting
+                {isHost ? (
+                  <>
+                    <button
+                      className="primary-btn"
+                      onClick={startGame}
+                      disabled={!hasMinimumPlayers}
+                    >
+                      Start Game
+                    </button>
+                    <button
+                      className="primary-btn"
+                      onClick={startVoting}
+                      disabled={!hasMinimumPlayers}
+                    >
+                      Start Voting
+                    </button>
+                  </>
+                ) : null}
+                <button
+                  className="ghost-btn"
+                  onClick={leaveRoom}
+                >
+                  Leave Room
                 </button>
               </>
             ) : null}
           </div>
         </header>
 
-        {!name ? (
+        {!connected ? (
+          <ServerConfig onConnected={handleServerConnected} />
+        ) : !name ? (
           <NameForm onSubmit={handleSetName} />
         ) : (
           <div className="main-grid">

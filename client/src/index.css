@@ -122,3 +122,40 @@ html,body,#root { height: 100%; margin: 0; font-family: Inter, system-ui, -apple
 }
 .name-form button { padding:10px 16px; border-radius:8px; background:rgba(255,255,255,0.04); border:none; color:inherit; }
 .app-footer { text-align:center; color:var(--muted); font-size:12px; }
+
+.primary-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(88, 172, 216, 0.9);
+  color: #0c1a2a;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease, opacity 0.2s ease;
+}
+
+.primary-btn:hover:not(:disabled) {
+  background: rgba(108, 192, 236, 1);
+  transform: translateY(-1px);
+}
+
+.primary-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ghost-btn {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: white;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.ghost-btn:hover {
+  border-color: rgba(255, 255, 255, 0.6);
+  color: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}

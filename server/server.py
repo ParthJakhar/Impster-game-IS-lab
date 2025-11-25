@@ -33,7 +33,7 @@ clues_revealed = False
 
 # sample word pairs (crewmate_word, imposter_word)
 WORD_PAIRS = [
-    ("apple", "apples"),
+    ("apple", "guava"),
     ("cat", "cap"),
     ("river", "rival"),
     ("book", "books"),
@@ -42,7 +42,7 @@ WORD_PAIRS = [
     ("bottle", "battle"),
 ]
 
-MIN_PLAYERS = 3
+MIN_PLAYERS = 2
 
 @app.route("/health")
 def health():
@@ -108,11 +108,23 @@ def on_disconnect():
         name = player.get("name")
         # remove the player and clean up round state
         remove_player(sid)
+
+@socketio.on("leave_room")
+def on_leave_room():
+    """
+    Allows a connected client to leave the lobby without closing the socket connection.
+    """
+    sid = request.sid
+    player = players.get(sid)
+    if player:
+        name = player.get("name")
+        remove_player(sid)
         emit_system_message(f"{name} left the game.")
         emit_player_list()
     else:
         # still try to clean state
         remove_player(sid)
+        emit_player_list()
 
 # ----------------- Game flow events -----------------
 
