@@ -2,7 +2,7 @@ import React, { useEffect, useState, useMemo } from "react";
 import { getSocket } from "./socket";
 import Lobby from "./components/Lobby";
 import Messages from "./components/Messages";
-import NameForm from "./components/NameForm";
+import Nameform from "./components/Nameform";
 import ServerConfig from "./components/ServerConfig";
 
 const MIN_PLAYERS = 3;
@@ -270,7 +270,7 @@ export default function App() {
         {!connected ? (
           <ServerConfig onConnected={handleServerConnected} />
         ) : !name ? (
-          <NameForm onSubmit={handleSetName} />
+          <Nameform onSubmit={handleSetName} />
         ) : (
           <div className="main-grid">
             <Lobby players={players} playerCount={players.length} me={name} gameStarted={gameStarted} onVote={castVote} />

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function NameForm({ onSubmit }) {
+export default function Nameform({ onSubmit }) {
   const [value, setValue] = useState("");
   const submit = (e) => {
     e.preventDefault();
